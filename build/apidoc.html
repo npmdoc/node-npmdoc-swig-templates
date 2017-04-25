@@ -49,6 +49,8 @@
 <h1>api documentation for
     <a
 
+        href="https://github.com/node-swig/swig-templates#readme"
+
     >swig-templates (v2.0.2)</a>
 </h1>
 <h4>A simple, powerful, and extendable templating engine for node.js and browsers, similar to Django, Jinja2, and Twig.</h4>
@@ -1573,7 +1575,23 @@ code&#x3e;.
     tags[name] = {
       parse: parse,
       compile: compi ...</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+};
+
+/**
+* Create a new, separate Swig compile/render environment.
+*
+* @example
+* var swig = require(&#x27;swig&#x27;);
+* var myswig = new swig.<span class="apidocCodeKeywordSpan">Swig</span>({varControls: [&#x27;&#x3c;%=&#x27;, &#x27;%&#x3e;&#x27;]});
+* myswig.render(&#x27;Tacos are &#x3c;%= tacos =&#x3e;!&#x27;, { locals: { tacos: &#x27;delicious&#x27; }});
+* // =&#x3e; Tacos are delicious!
+* swig.render(&#x27;Tacos are &#x3c;%= tacos =&#x3e;!&#x27;, { locals: { tacos: &#x27;delicious&#x27; }});
+* // =&#x3e; &#x27;Tacos are &#x3c;%= tacos =&#x3e;!&#x27;
+*
+* @param  {SwigOpts} [opts={}] Swig options object.
+* @return {object}      New Swig environment.
+...</pre></li>
     </ul>
 
 
@@ -1637,6 +1655,8 @@ code&#x3e;.
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -1726,7 +1746,23 @@ var output = template({
     self.cache = {};
   }
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+  self.options.cache.set(key, val);
+}
+
+/**
+ * Clears the in-memory template cache.
+ *
+ * @example
+ * swig.<span class="apidocCodeKeywordSpan">invalidateCache</span>();
+ *
+ * @return {undefined}
+ */
+this.invalidateCache = function () {
+  if (self.options.cache === &#x27;memory&#x27;) {
+    self.cache = {};
+  }
+...</pre></li>
     </ul>
 
 
@@ -1756,22 +1792,21 @@ var output = template({
   return self.parse(src, options);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-  compileOpts = utils.extend({}, opts, parseOpts),
-  tokens,
-  ctx;
+    while (parentName) {
+if (!options || !options.filename) {
+  throw new Error(&#x27;Cannot extend &#x22;&#x27; + parentName + &#x27;&#x22; because current template has no filename.&#x27;);
+}
 
-parser.on(types.STRING, function (token) {
-  var self = this;
-  if (!tokens) {
-    tokens = swig.<span class="apidocCodeKeywordSpan">parseFile</span>(token.match.replace(/^(&#x22;|&#x27;)|(&#x22;|&#x27;)$/g, &#
-x27;&#x27;), parseOpts).tokens;
-    utils.each(tokens, function (token) {
-      var out = &#x27;&#x27;,
-        macroName;
-      if (!token || token.name !== &#x27;macro&#x27; || !token.compile) {
-        return;
-      }
-      macroName = token.args[0];
+parentFile = parentFile || options.filename;
+parentFile = self.options.loader.resolve(parentName, parentFile);
+parent = cacheGet(parentFile, options) || self.<span class="apidocCodeKeywordSpan">parseFile</span>(parentFile, utils.extend({},
+options, { filename: parentFile }));
+parentName = parent.parent;
+
+if (parentFiles.indexOf(parentFile) !== -1) {
+  throw new Error(&#x27;Illegal circular extends of &#x22;&#x27; + parentFile + &#x27;&#x22;.&#x27;);
+}
+parentFiles.push(parentFile);
 ...</pre></li>
     </ul>
 
@@ -1891,7 +1926,23 @@ fn(file, str);
 
   return self.compileFile(pathName)(locals);
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+  return self.compile(source, options)();
+};
+
+/**
+ * Compile and render a template file for final output. This is most useful for libraries like Express.js.
+ *
+ * @example
+ * swig.<span class="apidocCodeKeywordSpan">renderFile</span>(&#x27;./template.html&#x27;, {}, function (err, output) {
+ *   if (err) {
+ *     throw err;
+ *   }
+ *   console.log(output);
+ * });
+ *
+ * @example
+...</pre></li>
     </ul>
 
 
@@ -1910,7 +1961,24 @@ fn(file, str);
   }
   return tpl(self, context, filters, utils, efn);
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+* Run a pre-compiled template function. This is most useful in the browser when you&#x27;ve pre-compiled your templates with the
+ Swig command-line tool.
+*
+* @example
+* $ swig compile ./mytpl.html --wrap-start=&#x22;var mytpl = &#x22; &#x3e; mytpl.js
+* @example
+* &#x3c;script src=&#x22;mytpl.js&#x22;&#x3e;&#x3c;/script&#x3e;
+* &#x3c;script&#x3e;
+*   swig.<span class="apidocCodeKeywordSpan">run</span>(mytpl, {});
+*   // =&#x3e; &#x22;rendered template...&#x22;
+* &#x3c;/script&#x3e;
+*
+* @param  {function} tpl       Pre-compiled Swig template function. Use the Swig CLI to compile your templates.
+* @param  {object} [locals={}] Template variable context.
+* @param  {string} [filepath]  Filename used for caching the template.
+* @return {string}             Rendered output.
+...</pre></li>
     </ul>
 
 
@@ -1971,7 +2039,25 @@ fn = function (file, str) {
     <li>description and source-code<pre class="apidocCodePre">setExtension = function (name, object) {
   self.extensions[name] = object;
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+  };
+};
+
+/**
+ * Add extensions for custom tags. This allows any custom tag to access a globally available methods via a special globally available
+ object, &#x3c;var&#x3e;_ext&#x3c;/var&#x3e;, in templates.
+ *
+ * @example
+ * swig.<span class="apidocCodeKeywordSpan">setExtension</span>(&#x27;trans&#x27;, function (v) { return translate(v); });
+ * function compileTrans(compiler, args, content, parent, options) {
+ *   return &#x27;_output += _ext.trans(&#x27; + args[0] + &#x27;);&#x27;
+ * };
+ * swig.setTag(&#x27;trans&#x27;, parseTrans, compileTrans, true);
+ *
+ * @param  {string} name   Key name of the extension. Accessed via &#x3c;code data-language=&#x22;js&#x22;&#x3e;_ext[name]&#x3c;/
+code&#x3e;.
+ * @param  {*}      object The method, value, or object that should be available via the given name.
+...</pre></li>
     </ul>
 
 
@@ -2130,6 +2216,8 @@ if (argv.options) {
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -2213,6 +2301,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -2854,6 +2944,8 @@ exports.z = function (input, offset, abbr) {
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -2924,6 +3016,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -2991,6 +3085,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -3071,6 +3167,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -3922,6 +4020,8 @@ n&#x27;,
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4037,6 +4137,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4161,6 +4263,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4281,6 +4385,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4476,7 +4582,7 @@ if (parser.state.length) {
   return ret;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-var fs = require(&#x27;fs&#x27;),
+var process=require(&#x22;__browserify_process&#x22;);var fs = require(&#x27;fs&#x27;),
   path = require(&#x27;path&#x27;);
 
 /**
@@ -4620,6 +4726,8 @@ var ret = {};
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4746,6 +4854,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4854,6 +4964,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -5048,6 +5160,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -5119,6 +5233,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -5259,6 +5375,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{&#x22;./lexer&#x22;:4,&#x22;./utils&#x22;:26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -5679,23 +5797,22 @@ if (parser.state.length) {
   throw new Error(message + &#x27;.&#x27;);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-case _t.BOOL:
-  self.filterApplyIdx.push(self.out.length);
-  self.out.push(match);
-  break;
+  ret.load = function (pathname, cb) {
+var src, paths;
 
-case _t.FILTER:
-  if (!self.filters.hasOwnProperty(match) || typeof self.filters[match] !== &#x22;function&#x22;) {
-    utils.<span class="apidocCodeKeywordSpan">throwError</span>(&#x27;Invalid filter &#x22;&#x27; + match + &#x27;&#x22;&#x27;,
-self.line, self.filename);
-  }
-  self.escape = self.filters[match].safe ? false : self.escape;
-  self.out.splice(self.filterApplyIdx[self.filterApplyIdx.length - 1], 0, &#x27;_filters[&#x22;&#x27; + match + &#x27;&#x22;](&#
-x27;);
-  self.state.push(token.type);
-  break;
+paths = [pathname, pathname.replace(/^(\/|\\)/, &#x27;&#x27;)];
 
-case _t.FILTEREMPTY:
+src = mapping[paths[0]] || mapping[paths[1]];
+if (!src) {
+  utils.<span class="apidocCodeKeywordSpan">throwError</span>(&#x27;Unable to find template &#x22;&#x27; + pathname + &#x27;&#x22
+;.&#x27;);
+}
+
+if (cb) {
+  cb(null, src);
+  return;
+}
+return src;
 ...</pre></li>
     </ul>
 

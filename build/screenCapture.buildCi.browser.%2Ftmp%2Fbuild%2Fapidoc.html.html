@@ -47,7 +47,7 @@
 }
 </style>
 <h1>api documentation for
-    <a>swig-templates (v2.0.2)</a>
+    <a href="https://github.com/node-swig/swig-templates#readme">swig-templates (v2.0.2)</a>
 </h1>
 <h4>A simple, powerful, and extendable templating engine for node.js and browsers, similar to Django, Jinja2, and Twig.</h4>
 <div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
@@ -1568,7 +1568,23 @@ code&gt;.
     tags[name] = {
       parse: parse,
       compile: compi ...</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+};
+
+/**
+* Create a new, separate Swig compile/render environment.
+*
+* @example
+* var swig = require('swig');
+* var myswig = new swig.<span class="apidocCodeKeywordSpan">Swig</span>({varControls: ['&lt;%=', '%&gt;']});
+* myswig.render('Tacos are &lt;%= tacos =&gt;!', { locals: { tacos: 'delicious' }});
+* // =&gt; Tacos are delicious!
+* swig.render('Tacos are &lt;%= tacos =&gt;!', { locals: { tacos: 'delicious' }});
+* // =&gt; 'Tacos are &lt;%= tacos =&gt;!'
+*
+* @param  {SwigOpts} [opts={}] Swig options object.
+* @return {object}      New Swig environment.
+...</pre></li>
     </ul>
 
 
@@ -1632,6 +1648,8 @@ code&gt;.
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -1721,7 +1739,23 @@ var output = template({
     self.cache = {};
   }
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+  self.options.cache.set(key, val);
+}
+
+/**
+ * Clears the in-memory template cache.
+ *
+ * @example
+ * swig.<span class="apidocCodeKeywordSpan">invalidateCache</span>();
+ *
+ * @return {undefined}
+ */
+this.invalidateCache = function () {
+  if (self.options.cache === 'memory') {
+    self.cache = {};
+  }
+...</pre></li>
     </ul>
 
 
@@ -1751,22 +1785,21 @@ var output = template({
   return self.parse(src, options);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-  compileOpts = utils.extend({}, opts, parseOpts),
-  tokens,
-  ctx;
+    while (parentName) {
+if (!options || !options.filename) {
+  throw new Error('Cannot extend "' + parentName + '" because current template has no filename.');
+}
 
-parser.on(types.STRING, function (token) {
-  var self = this;
-  if (!tokens) {
-    tokens = swig.<span class="apidocCodeKeywordSpan">parseFile</span>(token.match.replace(/^("|')|("|')$/g, &amp;#
-x27;'), parseOpts).tokens;
-    utils.each(tokens, function (token) {
-      var out = '',
-        macroName;
-      if (!token || token.name !== 'macro' || !token.compile) {
-        return;
-      }
-      macroName = token.args[0];
+parentFile = parentFile || options.filename;
+parentFile = self.options.loader.resolve(parentName, parentFile);
+parent = cacheGet(parentFile, options) || self.<span class="apidocCodeKeywordSpan">parseFile</span>(parentFile, utils.extend({},
+options, { filename: parentFile }));
+parentName = parent.parent;
+
+if (parentFiles.indexOf(parentFile) !== -1) {
+  throw new Error('Illegal circular extends of "' + parentFile + '".');
+}
+parentFiles.push(parentFile);
 ...</pre></li>
     </ul>
 
@@ -1886,7 +1919,23 @@ fn(file, str);
 
   return self.compileFile(pathName)(locals);
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+  return self.compile(source, options)();
+};
+
+/**
+ * Compile and render a template file for final output. This is most useful for libraries like Express.js.
+ *
+ * @example
+ * swig.<span class="apidocCodeKeywordSpan">renderFile</span>('./template.html', {}, function (err, output) {
+ *   if (err) {
+ *     throw err;
+ *   }
+ *   console.log(output);
+ * });
+ *
+ * @example
+...</pre></li>
     </ul>
 
 
@@ -1905,7 +1954,24 @@ fn(file, str);
   }
   return tpl(self, context, filters, utils, efn);
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+* Run a pre-compiled template function. This is most useful in the browser when you've pre-compiled your templates with the
+ Swig command-line tool.
+*
+* @example
+* $ swig compile ./mytpl.html --wrap-start="var mytpl = " &gt; mytpl.js
+* @example
+* &lt;script src="mytpl.js"&gt;&lt;/script&gt;
+* &lt;script&gt;
+*   swig.<span class="apidocCodeKeywordSpan">run</span>(mytpl, {});
+*   // =&gt; "rendered template..."
+* &lt;/script&gt;
+*
+* @param  {function} tpl       Pre-compiled Swig template function. Use the Swig CLI to compile your templates.
+* @param  {object} [locals={}] Template variable context.
+* @param  {string} [filepath]  Filename used for caching the template.
+* @return {string}             Rendered output.
+...</pre></li>
     </ul>
 
 
@@ -1966,7 +2032,25 @@ fn = function (file, str) {
     <li>description and source-code<pre class="apidocCodePre">setExtension = function (name, object) {
   self.extensions[name] = object;
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+  };
+};
+
+/**
+ * Add extensions for custom tags. This allows any custom tag to access a globally available methods via a special globally available
+ object, &lt;var&gt;_ext&lt;/var&gt;, in templates.
+ *
+ * @example
+ * swig.<span class="apidocCodeKeywordSpan">setExtension</span>('trans', function (v) { return translate(v); });
+ * function compileTrans(compiler, args, content, parent, options) {
+ *   return '_output += _ext.trans(' + args[0] + ');'
+ * };
+ * swig.setTag('trans', parseTrans, compileTrans, true);
+ *
+ * @param  {string} name   Key name of the extension. Accessed via &lt;code data-language="js"&gt;_ext[name]&lt;/
+code&gt;.
+ * @param  {*}      object The method, value, or object that should be available via the given name.
+...</pre></li>
     </ul>
 
 
@@ -2125,6 +2209,8 @@ if (argv.options) {
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -2208,6 +2294,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -2849,6 +2937,8 @@ exports.z = function (input, offset, abbr) {
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -2919,6 +3009,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -2986,6 +3078,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -3066,6 +3160,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -3917,6 +4013,8 @@ n',
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4032,6 +4130,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4156,6 +4256,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4276,6 +4378,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4471,7 +4575,7 @@ if (parser.state.length) {
   return ret;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-var fs = require('fs'),
+var process=require("__browserify_process");var fs = require('fs'),
   path = require('path');
 
 /**
@@ -4615,6 +4719,8 @@ var ret = {};
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4741,6 +4847,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -4849,6 +4957,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -5043,6 +5153,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -5114,6 +5226,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -5254,6 +5368,8 @@ argv.o = path.normalize(argv.o);
 
   return out;
 };
+
+},{"./lexer":4,"./utils":26}],9:[function(require,module,exports){
 ...</pre></li>
     </ul>
 
@@ -5674,23 +5790,22 @@ if (parser.state.length) {
   throw new Error(message + '.');
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-case _t.BOOL:
-  self.filterApplyIdx.push(self.out.length);
-  self.out.push(match);
-  break;
+  ret.load = function (pathname, cb) {
+var src, paths;
 
-case _t.FILTER:
-  if (!self.filters.hasOwnProperty(match) || typeof self.filters[match] !== "function") {
-    utils.<span class="apidocCodeKeywordSpan">throwError</span>('Invalid filter "' + match + '"',
-self.line, self.filename);
-  }
-  self.escape = self.filters[match].safe ? false : self.escape;
-  self.out.splice(self.filterApplyIdx[self.filterApplyIdx.length - 1], 0, '_filters["' + match + '"](&amp;#
-x27;);
-  self.state.push(token.type);
-  break;
+paths = [pathname, pathname.replace(/^(\/|\\)/, '')];
 
-case _t.FILTEREMPTY:
+src = mapping[paths[0]] || mapping[paths[1]];
+if (!src) {
+  utils.<span class="apidocCodeKeywordSpan">throwError</span>('Unable to find template "' + pathname + '"
+;.');
+}
+
+if (cb) {
+  cb(null, src);
+  return;
+}
+return src;
 ...</pre></li>
     </ul>
 
